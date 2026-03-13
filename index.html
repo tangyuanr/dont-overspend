@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trip Budget">
+<meta name="theme-color" content="#1a1714">
+<title>Trip Budget</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1714;
+    --card: #252220;
+    --border: #3a3530;
+    --text: #e8e4df;
+    --text-dim: #a09a92;
+    --text-muted: #6a6460;
+    --text-label: #8a8480;
+    --green: #2dd4a0;
+    --yellow: #f5c542;
+    --red: #f2665a;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  .app {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 20px 16px 100px;
+  }
+
+  /* Setup screen */
+  .setup { margin-top: 15vh; text-align: center; animation: fadeUp 0.5s ease; }
+  .setup-icon { font-size: 48px; margin-bottom: 12px; }
+  .setup h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .setup p { color: var(--text-label); font-size: 14px; margin-bottom: 36px; }
+  .setup-field { text-align: left; margin-bottom: 20px; }
+  .setup-field label {
+    display: block; font-size: 11px; font-weight: 600;
+    color: var(--text-label); text-transform: uppercase;
+    letter-spacing: 0.8px; margin-bottom: 6px;
+  }
+  .setup-field input {
+    width: 100%; padding: 14px 16px; font-size: 20px; font-weight: 600;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); outline: none;
+    font-family: 'DM Mono', monospace;
+  }
+  .setup-field input:focus { border-color: var(--green); }
+  .start-btn {
+    margin-top: 16px; width: 100%; padding: 16px; font-size: 16px;
+    font-weight: 700; background: var(--green); color: var(--bg);
+    border: none; border-radius: 12px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; letter-spacing: 0.3px;
+    transition: transform 0.15s;
+  }
+  .start-btn:active { transform: scale(0.97); }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .gear-btn {
+    background: none; border: none; color: var(--text-label);
+    font-size: 20px; cursor: pointer; padding: 4px 8px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 16px 18px; margin-bottom: 10px;
+    animation: fadeUp 0.35s ease both;
+  }
+  .card:nth-child(2) { animation-delay: 0.05s; }
+  .card:nth-child(3) { animation-delay: 0.1s; }
+  .card-row { display: flex; justify-content: space-between; align-items: center; }
+  .card-label { font-size: 14px; font-weight: 600; color: var(--text-dim); }
+  .card-value { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; font-family: 'DM Mono', monospace; }
+  .card-small { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-family: 'DM Mono', monospace; }
+
+  .bar-track {
+    width: 100%; height: 6px; background: var(--border);
+    border-radius: 3px; margin: 10px 0 6px; overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s;
+  }
+
+  .avg-card { padding: 12px 18px; }
+
+  /* Input area */
+  .input-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 14px; margin: 20px 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .input-row { display: flex; gap: 8px; }
+  .input-card input[type="number"],
+  .input-card input[type="text"],
+  .input-card input[type="date"] {
+    padding: 10px 12px; font-size: 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text); outline: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .input-card input:focus { border-color: var(--green); }
+  .input-card input[type="number"] { flex: 0 0 90px; font-family: 'DM Mono', monospace; }
+  .input-card input[type="text"] { flex: 1; min-width: 0; }
+  .input-card input[type="date"] { flex: 1; font-size: 13px; }
+
+  .add-btn {
+    padding: 10px 18px; font-size: 14px; font-weight: 700;
+    background: var(--green); color: var(--bg); border: none;
+    border-radius: var(--radius-sm); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; white-space: nowrap;
+    transition: transform 0.15s;
+  }
+  .add-btn:active { transform: scale(0.95); }
+
+  /* Category pills */
+  .cat-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cat-pill {
+    padding: 5px 10px; font-size: 11px; font-weight: 600;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 20px; color: var(--text-label); cursor: pointer;
+    transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .cat-pill.active { border-color: var(--green); color: var(--green); background: rgba(45,212,160,0.08); }
+
+  /* Entries */
+  .day-group { margin-bottom: 16px; animation: fadeUp 0.3s ease both; }
+  .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .day-date {
+    font-size: 12px; font-weight: 700; color: var(--text-label);
+    text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .day-total { font-size: 12px; font-weight: 600; font-family: 'DM Mono', monospace; }
+  .day-bar { height: 3px; margin-bottom: 8px; }
+
+  .entry {
+    display: flex; align-items: center; padding: 9px 12px;
+    background: var(--card); border-radius: var(--radius-sm);
+    margin-bottom: 3px; gap: 8px;
+  }
+  .entry-cat {
+    font-size: 14px; flex-shrink: 0; width: 22px; text-align: center;
+  }
+  .entry-label { flex: 1; font-size: 14px; color: #c8c4bf; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .entry-amount { font-size: 14px; font-weight: 600; font-family: 'DM Mono', monospace; margin-right: 2px; }
+  .entry-actions { display: flex; gap: 2px; }
+  .entry-btn {
+    background: none; border: none; color: var(--text-muted);
+    font-size: 16px; cursor: pointer; padding: 2px 5px; line-height: 1;
+  }
+
+  /* Edit inline */
+  .edit-row { display: flex; gap: 6px; flex: 1; align-items: center; }
+  .edit-row input {
+    padding: 4px 8px; font-size: 13px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); outline: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .edit-row input[type="number"] { width: 65px; font-family: 'DM Mono', monospace; }
+  .edit-row input[type="text"] { flex: 1; min-width: 0; }
+  .save-btn { background: none; border: none; color: var(--green); font-size: 16px; cursor: pointer; font-weight: 700; }
+  .cancel-btn { background: none; border: none; color: var(--red); font-size: 16px; cursor: pointer; }
+
+  .empty { text-align: center; color: var(--text-muted); font-size: 14px; margin-top: 40px; }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Color classes */
+  .c-green { color: var(--green); }
+  .c-yellow { color: var(--yellow); }
+  .c-red { color: var(--red); }
+  .bg-green { background-color: var(--green); }
+  .bg-yellow { background-color: var(--yellow); }
+  .bg-red { background-color: var(--red); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Date input fix for dark mode */
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+
+  /* Export btn */
+  .export-btn {
+    display: block; width: 100%; padding: 12px; margin-top: 24px;
+    font-size: 13px; font-weight: 600; color: var(--text-label);
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); cursor: pointer; text-align: center;
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  }
+  .export-btn:active { transform: scale(0.98); border-color: var(--green); color: var(--green); }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+const CATEGORIES = [
+  { key: 'food', icon: '🍽', label: 'Food' },
+  { key: 'transport', icon: '🚇', label: 'Transit' },
+  { key: 'activity', icon: '🎟', label: 'Activity' },
+  { key: 'shopping', icon: '🛍', label: 'Shopping' },
+  { key: 'other', icon: '•', label: 'Other' },
+];
+
+const LS_KEY = 'trip_budget_v1';
+
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LS_KEY));
+    if (d && d.entries) return d;
+  } catch(e) {}
+  return null;
+}
+
+function save(state) {
+  localStorage.setItem(LS_KEY, JSON.stringify({
+    dailyCap: state.dailyCap,
+    totalBudget: state.totalBudget,
+    entries: state.entries,
+    currency: state.currency,
+  }));
+}
+
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function formatDate(ds) {
+  const d = new Date(ds + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function barColor(pct) {
+  if (pct < 60) return 'green';
+  if (pct < 85) return 'yellow';
+  return 'red';
+}
+
+function groupByDate(entries) {
+  const g = {};
+  entries.forEach(e => {
+    if (!g[e.date]) g[e.date] = [];
+    g[e.date].push(e);
+  });
+  return g;
+}
+
+function catIcon(key) {
+  const c = CATEGORIES.find(x => x.key === key);
+  return c ? c.icon : '•';
+}
+
+// State
+let state = load() || {
+  dailyCap: 50,
+  totalBudget: 1250,
+  entries: [],
+  currency: '€',
+};
+let isSetup = !load();
+let editingId = null;
+let editAmount = '';
+let editLabel = '';
+let inputAmount = '';
+let inputLabel = '';
+let inputDate = todayStr();
+let inputCat = 'food';
+
+function render() {
+  const app = document.getElementById('app');
+
+  if (isSetup) {
+    app.innerHTML = `
+      <div class="setup">
+        <div class="setup-icon">💶</div>
+        <h1>Trip Budget</h1>
+        <p>Set your limits before tracking.</p>
+        <div class="setup-field">
+          <label>Currency symbol</label>
+          <input type="text" id="s-currency" value="${state.currency}" maxlength="3" style="font-size:20px;">
+        </div>
+        <div class="setup-field">
+          <label>Total trip budget</label>
+          <input type="number" id="s-total" value="${state.totalBudget}" step="0.01">
+        </div>
+        <div class="setup-field">
+          <label>Daily cap</label>
+          <input type="number" id="s-daily" value="${state.dailyCap}" step="0.01">
+        </div>
+        <button class="start-btn" id="s-start">Start Tracking →</button>
+      </div>
+    `;
+    document.getElementById('s-start').onclick = () => {
+      state.currency = document.getElementById('s-currency').value.trim() || '€';
+      state.totalBudget = parseFloat(document.getElementById('s-total').value) || 0;
+      state.dailyCap = parseFloat(document.getElementById('s-daily').value) || 0;
+      isSetup = false;
+      save(state);
+      render();
+    };
+    return;
+  }
+
+  const totalSpent = state.entries.reduce((s, e) => s + e.amount, 0);
+  const remaining = state.totalBudget - totalSpent;
+  const budgetPct = state.totalBudget > 0 ? Math.min((totalSpent / state.totalBudget) * 100, 100) : 0;
+
+  const grouped = groupByDate(state.entries);
+  const today = todayStr();
+  const todaySpent = (grouped[today] || []).reduce((s, e) => s + e.amount, 0);
+  const todayLeft = state.dailyCap - todaySpent;
+  const todayPct = state.dailyCap > 0 ? Math.min((todaySpent / state.dailyCap) * 100, 100) : 0;
+
+  const daysCount = Object.keys(grouped).length || 1;
+  const avgDaily = totalSpent / daysCount;
+
+  const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+
+  const C = state.currency;
+
+  let entriesHTML = '';
+  if (sortedDates.length === 0) {
+    entriesHTML = '<p class="empty">No expenses yet. Add your first one above.</p>';
+  } else {
+    sortedDates.forEach(date => {
+      const dayEntries = grouped[date];
+      const dayTotal = dayEntries.reduce((s, e) => s + e.amount, 0);
+      const dayPct = state.dailyCap > 0 ? Math.min((dayTotal / state.dailyCap) * 100, 100) : 0;
+      const dc = barColor(dayPct);
+      const isToday = date === today;
+      const overBudget = dayTotal > state.dailyCap;
+
+      let rows = '';
+      dayEntries.forEach(entry => {
+        if (editingId === entry.id) {
+          rows += `
+            <div class="entry">
+              <div class="edit-row">
+                <input type="number" id="ed-amt" value="${editAmount}" step="0.01">
+                <input type="text" id="ed-lbl" value="${editLabel}">
+                <button class="save-btn" data-save="${entry.id}">✓</button>
+                <button class="cancel-btn" data-cancel>✕</button>
+              </div>
+            </div>`;
+        } else {
+          rows += `
+            <div class="entry">
+              <span class="entry-cat">${catIcon(entry.cat)}</span>
+              <span class="entry-label">${esc(entry.label)}</span>
+              <span class="entry-amount">${C}${entry.amount.toFixed(2)}</span>
+              <div class="entry-actions">
+                <button class="entry-btn" data-edit="${entry.id}">✎</button>
+                <button class="entry-btn" data-del="${entry.id}">×</button>
+              </div>
+            </div>`;
+        }
+      });
+
+      entriesHTML += `
+        <div class="day-group">
+          <div class="day-header">
+            <span class="day-date">${isToday ? 'Today' : formatDate(date)}</span>
+            <span class="day-total c-${overBudget ? 'red' : 'text-muted'}">${C}${dayTotal.toFixed(2)}${overBudget ? ' ⚠' : ''}</span>
+          </div>
+          <div class="bar-track day-bar"><div class="bar-fill bg-${dc}" style="width:${dayPct}%"></div></div>
+          ${rows}
+        </div>`;
+    });
+  }
+
+  const catPills = CATEGORIES.map(c =>
+    `<button class="cat-pill ${inputCat === c.key ? 'active' : ''}" data-cat="${c.key}">${c.icon} ${c.label}</button>`
+  ).join('');
+
+  app.innerHTML = `
+    <div class="header">
+      <h1>Trip Budget</h1>
+      <button class="gear-btn" id="gear">⚙</button>
+    </div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-label">Trip Total</span>
+        <span class="card-value c-${remaining < 0 ? 'red' : 'green'}">${C}${remaining.toFixed(2)} left</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bg-${barColor(budgetPct)}" style="width:${budgetPct}%"></div></div>
+      <div class="card-row">
+        <span class="card-small">${C}${totalSpent.toFixed(2)} spent</span>
+        <span class="card-small">of ${C}${state.totalBudget.toFixed(2)}</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-label">Today</span>
+        <span class="card-value ${todayLeft < 0 ? 'c-red' : todayPct > 85 ? 'c-yellow' : 'c-green'}">${C}${todayLeft.toFixed(2)} left</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill bg-${barColor(todayPct)}" style="width:${todayPct}%"></div></div>
+      <div class="card-row">
+        <span class="card-small">${C}${todaySpent.toFixed(2)} spent</span>
+        <span class="card-small">cap ${C}${state.dailyCap.toFixed(2)}/day</span>
+      </div>
+    </div>
+
+    <div class="card avg-card">
+      <div class="card-row">
+        <span class="card-small">Avg daily spend</span>
+        <span class="card-label ${avgDaily > state.dailyCap ? 'c-red' : 'c-green'}" style="font-size:15px;font-family:'DM Mono',monospace">${C}${avgDaily.toFixed(2)}</span>
+      </div>
+    </div>
+
+    <div class="input-card">
+      <div class="input-row">
+        <input type="number" id="i-amt" placeholder="${C} amount" value="${inputAmount}" step="0.01">
+        <input type="text" id="i-lbl" placeholder="what for?" value="${esc(inputLabel)}">
+      </div>
+      <div class="cat-row">${catPills}</div>
+      <div class="input-row">
+        <input type="date" id="i-date" value="${inputDate}">
+        <button class="add-btn" id="i-add">+ Add</button>
+      </div>
+    </div>
+
+    <div id="entries">${entriesHTML}</div>
+
+    <button class="export-btn" id="export-btn">Export as CSV</button>
+    <button class="export-btn" id="reset-btn" style="margin-top:8px;color:var(--red);border-color:var(--red);">Reset All Data</button>
+  `;
+
+  // Bind events
+  document.getElementById('gear').onclick = () => { isSetup = true; render(); };
+
+  document.getElementById('i-amt').oninput = e => { inputAmount = e.target.value; };
+  document.getElementById('i-lbl').oninput = e => { inputLabel = e.target.value; };
+  document.getElementById('i-date').onchange = e => { inputDate = e.target.value; };
+
+  document.querySelectorAll('.cat-pill').forEach(btn => {
+    btn.onclick = () => { inputCat = btn.dataset.cat; render(); };
+  });
+
+  const addBtn = document.getElementById('i-add');
+  addBtn.onclick = addEntry;
+
+  // Enter key on inputs
+  document.getElementById('i-amt').onkeydown = e => { if (e.key === 'Enter') addEntry(); };
+  document.getElementById('i-lbl').onkeydown = e => { if (e.key === 'Enter') addEntry(); };
+
+  // Entry actions
+  document.querySelectorAll('[data-del]').forEach(btn => {
+    btn.onclick = () => {
+      state.entries = state.entries.filter(e => e.id !== parseInt(btn.dataset.del));
+      save(state);
+      render();
+    };
+  });
+  document.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.onclick = () => {
+      const entry = state.entries.find(e => e.id === parseInt(btn.dataset.edit));
+      if (entry) { editingId = entry.id; editAmount = entry.amount.toString(); editLabel = entry.label; render(); }
+    };
+  });
+  document.querySelectorAll('[data-save]').forEach(btn => {
+    btn.onclick = () => {
+      const amt = parseFloat(document.getElementById('ed-amt').value);
+      const lbl = document.getElementById('ed-lbl').value.trim() || 'Expense';
+      if (!isNaN(amt)) {
+        state.entries = state.entries.map(e => e.id === parseInt(btn.dataset.save) ? { ...e, amount: parseFloat(amt.toFixed(2)), label: lbl } : e);
+        save(state);
+      }
+      editingId = null;
+      render();
+    };
+  });
+  document.querySelectorAll('[data-cancel]').forEach(btn => {
+    btn.onclick = () => { editingId = null; render(); };
+  });
+
+  document.getElementById('export-btn').onclick = exportCSV;
+  document.getElementById('reset-btn').onclick = () => {
+    if (confirm('Delete all data and start fresh?')) {
+      localStorage.removeItem(LS_KEY);
+      state = { dailyCap: 50, totalBudget: 1250, entries: [], currency: '€' };
+      isSetup = true;
+      render();
+    }
+  };
+}
+
+function addEntry() {
+  const amt = parseFloat(inputAmount);
+  if (isNaN(amt) || amt <= 0) return;
+  state.entries.push({
+    id: Date.now(),
+    amount: parseFloat(amt.toFixed(2)),
+    label: inputLabel.trim() || 'Expense',
+    date: inputDate,
+    cat: inputCat,
+  });
+  save(state);
+  inputAmount = '';
+  inputLabel = '';
+  inputCat = 'food';
+  render();
+  // Focus back on amount
+  setTimeout(() => {
+    const el = document.getElementById('i-amt');
+    if (el) el.focus();
+  }, 50);
+}
+
+function exportCSV() {
+  let csv = 'Date,Category,Label,Amount\n';
+  const sorted = [...state.entries].sort((a, b) => a.date.localeCompare(b.date));
+  sorted.forEach(e => {
+    csv += `${e.date},${e.cat || 'other'},"${e.label.replace(/"/g, '""')}",${e.amount.toFixed(2)}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'trip-budget.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+render();
+</script>
+</body>
+</html>
